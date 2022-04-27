@@ -6,6 +6,7 @@ import sys
 temp_low=15.5
 temp_high=17
 manual=0
+collectSun=0
 
 # overrule target temperatures if manual command such as: python heater.py 19
 if len(sys.argv) > 1:
@@ -51,17 +52,18 @@ while True:
         dtemp = "%.1f" % temperature
         results = results + "," + str(dtemp)
 
-    temp=float(results.split(",")[3]) # temperature of Keukenplafond - sensor 28-01203333797e
+    tempKitchen=float(results.split(",")[3]) # temperature of Keukenplafond - sensor 28-01203333797e
+    tempSolar=float(results.split(",")[1]) # temperature of exit of Solar Collector - sensor 28-01203335f00a
     HM=int(time.strftime('%H''%M'))
 #     print(time)
 
 #    if (HM < 730 or HM > 1500) and temp < temp_high: # time between 6h30-7h30 or 15h00-22h30
-    if HM > 1400 and temp < temp_high: # time between 14:00-
+    if HM > 1400 and tempKitchen < temp_high: # time between 14:00-
         GPIO.output(26,False)
-        print("HM={} > 14h00 and temp = {} < temp_high".format(HM,temp))
-    elif temp < temp_low:
+        print("HM=HH:mm={} > 14h00 and temp = {} < temp_high".format(HM,tempKitchen))
+    elif tempKitchen < temp_low:
         GPIO.output(26,False)
-        print("{} : temp = {} < temp_low".format(HM,temp))
+        print("HM=HH:mm={} : temp = {} < temp_low".format(HM,tempKitchen))
     else:
         GPIO.output(26,True)
 
@@ -69,7 +71,14 @@ while True:
     
     with open("/home/pi/data_log.csv", "a") as file:            
         file.write(results)
-
+    
+    if tempSolar > 60:
+        # GPIO.output(21,False)
+        print("HM=HH:mm={}, tempSolar = {} thus relay of pump solar collector turned on".format(HM,tempSolar))
+        collectSun = 1
+        else: 
+            collectSun = 0
+            # GPIO.output(21,True)
     
 #    if HM > 2300:
     if HM > 2000 + manual*200: # als manueel ingesteld verwarmen tot 22:00, anders tot 20:00
@@ -77,5 +86,7 @@ while True:
 #         GPIO.cleanup()
         print("{} PM. Go to sleep until around 6 AM".format(HM))
         time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
+    elif collectSun=1:
+        time.sleep (30)
     else:
         time.sleep (1200)    # change number of seconds to change time between sensor reads
