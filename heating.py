@@ -5,8 +5,10 @@ import sys
 #target temperatures
 temp_low=15.5
 temp_high=17
+
 manual=0
 collectSun=0
+shortsleep=0
 
 # overrule target temperatures if manual command such as: python heater.py 19
 if len(sys.argv) > 1:
@@ -22,6 +24,7 @@ GPIO.setwarnings(False)
 GPIO.setup(26,GPIO.OUT) #this seems like the only pin needed for our thermostat
 # GPIO.setup(21,GPIO.OUT)
 
+#######Read and write SENSOR data ###########
 #cat /sys/bus/w1/devices/28-01203335f00a/w1_slave & cat /sys/bus/w1/devices/28-01203320a597/w1_slave
 sensorids = ["28-01203335f00a", "28-01203320a597", "28-01203333797e"] # place the ID's of your ds18b20's in here
 
@@ -51,14 +54,20 @@ while True:
         temperature = (read_temp())
         dtemp = "%.1f" % temperature
         results = results + "," + str(dtemp)
-
-    tempKitchen=float(results.split(",")[3]) # temperature of Keukenplafond - sensor 28-01203333797e
-    tempSolar=float(results.split(",")[1]) # temperature of exit of Solar Collector - sensor 28-01203335f00a
+    results = results + "\n"  
+    
+    with open("/home/pi/data_log.csv", "a") as file:            
+        file.write(results)
+        
+    tempKitchen=float(results.split(",")[3]) # temperature of Kitchen ceiling - sensor 28-01203333797e
+    tempSolar=float(results.split(",")[1]) # temperature of output of Solar Collector - sensor 28-01203335f00a
+#    tempTank=float(results.split(",")[4]) # temperature at bottom of Water Storage Tank - sensor 28-XXXXXXX
     HM=int(time.strftime('%H''%M'))
 #     print(time)
 
+#############Thermostat###########
 #    if (HM < 730 or HM > 1500) and temp < temp_high: # time between 6h30-7h30 or 15h00-22h30
-    if HM > 1400 and tempKitchen < temp_high: # time between 14:00-
+    if HM > 1400 and tempKitchen < temp_high: # time between 14h and 20/22h
         GPIO.output(26,False)
         print("HM=HH:mm={} > 14h00 and temp = {} < temp_high".format(HM,tempKitchen))
     elif tempKitchen < temp_low:
@@ -67,26 +76,28 @@ while True:
     else:
         GPIO.output(26,True)
 
-    results = results + "\n"  
+###########Solar Collector##########
     
-    with open("/home/pi/data_log.csv", "a") as file:            
-        file.write(results)
-    
-    if tempSolar > 60:
+    if tempSolar > 60: # or (shortsleep and tempSolar > tempTank):
         # GPIO.output(21,False)
-        print("HM=HH:mm={}, tempSolar = {} thus relay of pump solar collector turned on".format(HM,tempSolar))
         collectSun = 1
+        print("HM=HH:mm={}, tempSolar = {} thus relay of pump solar on".format(HM,tempSolar))
+
         else: 
-            collectSun = 0
             # GPIO.output(21,True)
-    
+            collectSun = 0
+
+######Sleep#######            
 #    if HM > 2300:
     if HM > 2000 + manual*200: # als manueel ingesteld verwarmen tot 22:00, anders tot 20:00
         GPIO.output(26,True)
 #         GPIO.cleanup()
         print("{} PM. Go to sleep until around 6 AM".format(HM))
         time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
+        shortSleep=0
     elif collectSun=1:
         time.sleep (30)
+        shortSleep=1
     else:
         time.sleep (1200)    # change number of seconds to change time between sensor reads
+        shortSleep=0
