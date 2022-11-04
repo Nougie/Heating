@@ -6,6 +6,7 @@ x = []
 y1 = []
 y2 = []
 y3 = []
+y4 = []
 # code based on https://www.pluralsight.com/guides/building-visualizations-with-pygal
 
 line_chart = pygal.Line()
@@ -21,10 +22,13 @@ with open('data_log.csv','r') as csvfile:
 #        print(float(row[2]))
         y2.append(float(row[2]))
         y3.append(float(row[3]))
-#line_chart.add('Zonnecollector - 28-01203335f00a', y1)
+        y4.append(float(row[4]))
+
 line_chart.x_labels = x
-line_chart.add('Ingang vloerverwarming - 28-01203320a597', y2)
-line_chart.add('Keukenplafond - 28-01203333797e', y3)
+line_chart.add('Output Solar Collector - 28-01203335f00a', y1, secondary=True)
+line_chart.add('Input Underfloor Heating - 28-01203320a597', y2)
+line_chart.add('Kitchen Ceiling - 28-01203333797e', y3)
+line_chart.add('Bottom Water Storage Tank - 28-01203333797e', y4, secondary=True)
 line_chart.render_in_browser()
 
 # datetimeline = pygal.DateTimeLine(

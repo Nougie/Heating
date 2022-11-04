@@ -7,8 +7,8 @@ temp_low=15.5
 temp_high=17
 
 manual=0
-collectSun=0
-shortsleep=0
+# collectSun=0
+# shortsleep=0
 
 # overrule target temperatures if manual command such as: python heater.py 19
 if len(sys.argv) > 1:
@@ -26,7 +26,7 @@ GPIO.setup(26,GPIO.OUT) #this seems like the only pin needed for our thermostat
 
 #######Read and write SENSOR data ###########
 #cat /sys/bus/w1/devices/28-01203335f00a/w1_slave & cat /sys/bus/w1/devices/28-01203320a597/w1_slave
-sensorids = ["28-01203335f00a", "28-01203320a597", "28-01203333797e"] # place the ID's of your ds18b20's in here
+sensorids = ["28-01203335f00a", "28-01203320a597", "28-01203333797e", "28-01203303fd63"] # place the ID's of your ds18b20's in here
 
 def read_temp_raw():
     f = open(device_file, "r")
@@ -56,12 +56,12 @@ while True:
         results = results + "," + str(dtemp)
     results = results + "\n"  
     
-    with open("/home/pi/data_log.csv", "a") as file:            
+    with open("data_log.csv", "a") as file:            
         file.write(results)
         
     tempKitchen=float(results.split(",")[3]) # temperature of Kitchen ceiling - sensor 28-01203333797e
     tempSolar=float(results.split(",")[1]) # temperature of output of Solar Collector - sensor 28-01203335f00a
-#    tempTank=float(results.split(",")[4]) # temperature at bottom of Water Storage Tank - sensor 28-XXXXXXX
+#    tempTank=float(results.split(",")[4]) # temperature at bottom of Water Storage Tank - sensor 28-01203303fd63
     HM=int(time.strftime('%H''%M'))
 #     print(time)
 
@@ -78,14 +78,14 @@ while True:
 
 ###########Solar Collector##########
     
-    if tempSolar > 60: # or (shortsleep and tempSolar > tempTank):
-        # GPIO.output(21,False)
-        collectSun = 1
-        print("HM=HH:mm={}, tempSolar = {} thus relay of pump solar on".format(HM,tempSolar))
-
-        else: 
-            # GPIO.output(21,True)
-            collectSun = 0
+#     if tempSolar > 60: # or (shortsleep and tempSolar > tempTank):
+#         # GPIO.output(21,False)
+#         collectSun = 1
+#         print("HM=HH:mm={}, tempSolar = {} thus relay of pump solar on".format(HM,tempSolar))
+# 
+#         else: 
+#             # GPIO.output(21,True)
+#             collectSun = 0
 
 ######Sleep#######            
 #    if HM > 2300:
@@ -94,10 +94,10 @@ while True:
 #         GPIO.cleanup()
         print("{} PM. Go to sleep until around 6 AM".format(HM))
         time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
-        shortSleep=0
-    elif collectSun=1:
-        time.sleep (30)
-        shortSleep=1
+#         shortSleep=0
+#     elif collectSun=1:
+#         time.sleep (30)
+#         shortSleep=1
     else:
         time.sleep (1200)    # change number of seconds to change time between sensor reads
-        shortSleep=0
+#         shortSleep=0
