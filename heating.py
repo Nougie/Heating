@@ -7,8 +7,6 @@ temp_low=15.5
 temp_high=17
 
 manual=0
-# collectSun=0
-# shortsleep=0
 
 # overrule target temperatures if manual command such as: python heater.py 19
 if len(sys.argv) > 1:
@@ -61,7 +59,7 @@ while True:
         
     tempKitchen=float(results.split(",")[3]) # temperature of Kitchen ceiling - sensor 28-01203333797e
     tempSolar=float(results.split(",")[1]) # temperature of output of Solar Collector - sensor 28-01203335f00a
-#    tempTank=float(results.split(",")[4]) # temperature at bottom of Water Storage Tank - sensor 28-01203303fd63
+    tempTank=float(results.split(",")[4]) # temperature at bottom of Water Storage Tank - sensor 28-01203303fd63
     HM=int(time.strftime('%H''%M'))
 #     print(time)
 
@@ -76,28 +74,22 @@ while True:
     else:
         GPIO.output(26,True)
 
-###########Solar Collector##########
-    
-#     if tempSolar > 60: # or (shortsleep and tempSolar > tempTank):
-#         # GPIO.output(21,False)
-#         collectSun = 1
-#         print("HM=HH:mm={}, tempSolar = {} thus relay of pump solar on".format(HM,tempSolar))
-# 
-#         else: 
-#             # GPIO.output(21,True)
-#             collectSun = 0
+  
 
-######Sleep#######            
-#    if HM > 2300:
+######Night#######            
     if HM > 2000 + manual*200: # als manueel ingesteld verwarmen tot 22:00, anders tot 20:00
-        GPIO.output(26,True)
-#         GPIO.cleanup()
+#        GPIO.output(26,True)
+         GPIO.cleanup()
         print("{} PM. Go to sleep until around 6 AM".format(HM))
         time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
-#         shortSleep=0
-#     elif collectSun=1:
-#         time.sleep (30)
-#         shortSleep=1
+
+###########Solar Collector##########
+               
     else:
-        time.sleep (1200)    # change number of seconds to change time between sensor reads
-#         shortSleep=0
+        for x in range(10): # this for-loop assures a sleep of in total 10 times 120 seconds  
+            if tempSolar > tempTank+1: # +1 because tempTank sensor underestimates real storage tank temperature 
+                GPIO.output(20,False)
+                print("HM=HH:mm={} : tempSolar = {} > (tempTank = {})+1".format(HM,tempSolar,tempTank))
+            else:
+                GPIO.output(20,True)
+            time.sleep (120)    # change number of seconds to change time between sensor reads: 120 seconds = 2 minutes
