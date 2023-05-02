@@ -1,6 +1,8 @@
 import pygal
 import csv
 from collections import deque
+from datetime import datetime
+
 
 x = []
 y1 = []
@@ -9,7 +11,7 @@ y3 = []
 y4 = []
 # code based on https://www.pluralsight.com/guides/building-visualizations-with-pygal
 
-line_chart = pygal.Line()
+line_chart = pygal.Line(height=500, x_label_rotation=35)
 
 
 with open('data_log.csv','r') as csvfile:
@@ -17,6 +19,7 @@ with open('data_log.csv','r') as csvfile:
     data=deque(csvfile,20)
     plots=csv.reader(data, delimiter=',')
     for row in plots:
+#        t=datetime.strptime(row[0], '%Y-%m-%d %H:%M').date() #source: https://www.digitalocean.com/community/tutorials/python-string-to-datetime-strptime
         x.append(row[0])
         y1.append(float(row[1]))
 #        print(float(row[2]))
