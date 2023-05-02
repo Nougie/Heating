@@ -9,7 +9,7 @@ y3 = []
 y4 = []
 # code based on https://www.pluralsight.com/guides/building-visualizations-with-pygal
 
-line_chart = pygal.Line()
+line_chart = pygal.Line(height=500, x_label_rotation=35)
 
 
 with open('data_log.csv','r') as csvfile:
