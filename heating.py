@@ -18,7 +18,7 @@ if len(sys.argv) > 1:
 # set GPIO numbering mode and define output pins
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
-# GPIO.setup(20,GPIO.OUT)
+GPIO.setup(20,GPIO.OUT) #eerste relay voor solar
 GPIO.setup(26,GPIO.OUT) #this seems like the only pin needed for our thermostat
 # GPIO.setup(21,GPIO.OUT)
 
