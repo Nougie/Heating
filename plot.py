@@ -1,8 +1,6 @@
 import pygal
 import csv
 from collections import deque
-from datetime import datetime
-
 
 x = []
 y1 = []
@@ -19,7 +17,6 @@ with open('data_log.csv','r') as csvfile:
     data=deque(csvfile,20)
     plots=csv.reader(data, delimiter=',')
     for row in plots:
-#        t=datetime.strptime(row[0], '%Y-%m-%d %H:%M').date() #source: https://www.digitalocean.com/community/tutorials/python-string-to-datetime-strptime
         x.append(row[0])
         y1.append(float(row[1]))
 #        print(float(row[2]))
@@ -35,7 +32,7 @@ line_chart.add('Bottom Water Storage Tank - 28-01203333797e', y4, secondary=True
 line_chart.render_in_browser()
 
 # datetimeline = pygal.DateTimeLine(
-#     x_label_rotation=35, truncate_label=-1,
+#     , truncate_label=-1,
 #     x_value_formatter=lambda dt: dt.strftime('%d, %b %Y at %I:%M:%S %p'))
 # datetimeline.add("Zonnecollector - 28-01203335f00a", x, y1)
 # datetimeline.add('Ingang vloerverwarming - 28-01203320a597', x, y2)

@@ -4,17 +4,17 @@ import time
 
 # set GPIO numbering mode and define output pins
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(20,GPIO.OUT)
+# GPIO.setup(20,GPIO.OUT)
 GPIO.setup(26,GPIO.OUT)
-GPIO.setup(21,GPIO.OUT)
+# GPIO.setup(21,GPIO.OUT)
 
 
 # try:
 #     while True:
 
-# GPIO.output(26,False) #eerste relay voor thermostaat
+GPIO.output(26,False)
         # false is blijkbaar (normally open) schakelaar die sluit
-GPIO.output(20,False) #middenste relay voor pompje
+#         GPIO.output(20,True)
 #         GPIO.output(21,True)
 
 # finally:
