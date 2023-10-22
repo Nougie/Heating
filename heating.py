@@ -3,8 +3,8 @@ import RPi.GPIO as GPIO
 import sys
 
 #target temperatures
-temp_low=17.2
-temp_high=17.7
+temp_low=17.4
+temp_high=18
 
 manual=0
 
@@ -46,7 +46,6 @@ def read_temp():
         return temp_c
         
 while True:
-<<<<<<< HEAD
 
     
 #####if Night: sleep#######
@@ -55,7 +54,7 @@ while True:
         GPIO.output(26,True)
         GPIO.output(20,True)
 #        GPIO.cleanup() # ATTENTION, this will give something like GPIO not set-up error..
-=======
+
     
     results = time.strftime("%Y-%m-%d %H:%M")
     for sensor in range(len(sensorids)):
@@ -90,8 +89,7 @@ while True:
 ######Night#######            
     if HM > 2000 + manual*200: # als manueel ingesteld verwarmen tot 22:00, anders tot 20:00
 #        GPIO.output(26,True)
-         GPIO.cleanup()
->>>>>>> 82835259e7f16967ebc10dc1f673c6a08dd76a17
+        GPIO.cleanup()
         print("{} PM. Go to sleep until around 6 AM".format(HM))
         time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
 
@@ -99,7 +97,6 @@ while True:
                
     else:
         for x in range(10): # this for-loop assures a sleep of in total 10 times 120 seconds  
-<<<<<<< HEAD
             timestamp = time.strftime("%Y-%m-%d %H:%M")
             results = timestamp #rest of the array results will be added in following lines
             for sensor in range(len(sensorids)):
@@ -135,11 +132,9 @@ while True:
         else:
             GPIO.output(26,True)
 
-=======
             if tempSolar > tempTank+1: # +1 because tempTank sensor underestimates real storage tank temperature 
                 GPIO.output(20,False)
                 print("HM=HH:mm={} : tempSolar = {} > (tempTank = {})+1".format(HM,tempSolar,tempTank))
             else:
                 GPIO.output(20,True)
             time.sleep (120)    # change number of seconds to change time between sensor reads: 120 seconds = 2 minutes
->>>>>>> 82835259e7f16967ebc10dc1f673c6a08dd76a17
