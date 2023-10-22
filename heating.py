@@ -25,7 +25,7 @@ GPIO.setup(26,GPIO.OUT) #this seems like the only pin needed for our thermostat
 #######Read and write SENSOR data ###########
 #cat /sys/bus/w1/devices/28-01203335f00a/w1_slave & cat /sys/bus/w1/devices/28-01203320a597/w1_slave
 sensorids = ["28-01203335f00a", "28-01203320a597", "28-01203333797e", "28-01203303fd63"] # place the ID's of your ds18b20's in here
-#see lines around 73 for the identification of these sensors 
+#see lines around 100 for the identification of these sensors 
 
 def read_temp_raw():
     f = open(device_file, "r")
@@ -51,8 +51,11 @@ while True:
 #####if Night: sleep#######
     HM=int(time.strftime('%H''%M'))
     if HM > 2000 + manual*200: # als manueel ingesteld verwarmen tot 22:00, anders tot 20:00
-        GPIO.output(26,True)
-        GPIO.output(20,True)
+        GPIO.cleanup()
+        print("{} PM. Go to sleep until around 6 AM".format(HM))
+        time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
+#        GPIO.output(26,True)
+#        GPIO.output(20,True)
 #        GPIO.cleanup() # ATTENTION, this will give something like GPIO not set-up error..
 
     
@@ -74,7 +77,6 @@ while True:
 #     print(time)
 
 #############Thermostat###########
-#    if (HM < 730 or HM > 1500) and temp < temp_high: # time between 6h30-7h30 or 15h00-22h30
     if HM > 1400 and tempKitchen < temp_high: # time between 14h and 20/22h
         GPIO.output(26,False)
         print("HM=HH:mm={} > 14h00 and temp = {} < temp_high".format(HM,tempKitchen))
@@ -83,58 +85,26 @@ while True:
         print("HM=HH:mm={} : temp = {} < temp_low".format(HM,tempKitchen))
     else:
         GPIO.output(26,True)
-
-  
-
-######Night#######            
-    if HM > 2000 + manual*200: # als manueel ingesteld verwarmen tot 22:00, anders tot 20:00
-#        GPIO.output(26,True)
-        GPIO.cleanup()
-        print("{} PM. Go to sleep until around 6 AM".format(HM))
-        time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
-
-###########Solar Collector##########
-               
-    else:
-        for x in range(10): # this for-loop assures a sleep of in total 10 times 120 seconds  
-            timestamp = time.strftime("%Y-%m-%d %H:%M")
-            results = timestamp #rest of the array results will be added in following lines
-            for sensor in range(len(sensorids)):
-                device_file = "/sys/bus/w1/devices/"+ sensorids[sensor] +"/w1_slave"
-                temperature = (read_temp())
-                dtemp = "%.1f" % temperature
-                results = results + "," + str(dtemp)
-            results = results + "\n"
-            
-            tempSolar=float(results.split(",")[1]) # temperature of output of Solar Collector - sensor 28-01203335f00a
-            tempKitchen=float(results.split(",")[3]) # temperature of Kitchen ceiling - sensor 28-01203333797e
-            tempTank=float(results.split(",")[4]) # temperature at bottom of Water Storage Tank - sensor 28-01203303fd63
-            
-            if tempSolar > tempTank+1: # +1 because tempTank sensor underestimates real storage tank temperature 
-                GPIO.output(20,False)
-                print("{} : tempSolar = {} > (tempTank = {})+1".format(timestamp,tempSolar,tempTank))
-            else:
-                GPIO.output(20,True)
-            time.sleep (120)    # change number of seconds to change time between sensor reads: 120 seconds = 2 minutes
-    
-        ### write results every 10 x 120 seconds = every 20 minutes
-        with open("data_log.csv", "a") as file:            
-            file.write(results)    
-
-    #############Thermostat###########
-    #    if (HM < 730 or HM > 1500) and temp < temp_high: # time between 6h30-7h30 or 15h00-22h30
-        if int(time.strftime('%H''%M')) > 1400 and tempKitchen < temp_high: # time between 14h and 20/22h
-            GPIO.output(26,False)
-            print("{} > 14h00 and temp = {} < temp_high".format(timestamp,tempKitchen))
-        elif tempKitchen < temp_low:
-            GPIO.output(26,False)
-            print("{} : temp = {} < temp_low".format(timestamp,tempKitchen))
+ 
+#############Solar collector########
+    for x in range(10): # this for-loop assures a sleep of in total 10 times 120 seconds  
+        timestamp = time.strftime("%Y-%m-%d %H:%M")
+        results = timestamp #rest of the array results will be added in following lines
+        for sensor in range(len(sensorids)):
+            device_file = "/sys/bus/w1/devices/"+ sensorids[sensor] +"/w1_slave"
+            temperature = (read_temp())
+            dtemp = "%.1f" % temperature
+            results = results + "," + str(dtemp)
+        results = results + "\n"
+        
+        tempSolar=float(results.split(",")[1]) # temperature of output of Solar Collector - sensor 28-01203335f00a
+        tempKitchen=float(results.split(",")[3]) # temperature of Kitchen ceiling - sensor 28-01203333797e
+        tempTank=float(results.split(",")[4]) # temperature at bottom of Water Storage Tank - sensor 28-01203303fd63
+        
+        if tempSolar > tempTank+1: # +1 because tempTank sensor underestimates real storage tank temperature 
+            GPIO.output(20,False)
+            print("{} : tempSolar = {} > (tempTank = {})+1".format(timestamp,tempSolar,tempTank))
         else:
-            GPIO.output(26,True)
+            GPIO.output(20,True)
+        time.sleep (120)    # change number of seconds to change time between sensor reads: 120 seconds = 2 minutes
 
-            if tempSolar > tempTank+1: # +1 because tempTank sensor underestimates real storage tank temperature 
-                GPIO.output(20,False)
-                print("HM=HH:mm={} : tempSolar = {} > (tempTank = {})+1".format(HM,tempSolar,tempTank))
-            else:
-                GPIO.output(20,True)
-            time.sleep (120)    # change number of seconds to change time between sensor reads: 120 seconds = 2 minutes
