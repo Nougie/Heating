@@ -25,7 +25,7 @@ GPIO.setup(26,GPIO.OUT) #this seems like the only pin needed for our thermostat
 #######Read and write SENSOR data ###########
 #cat /sys/bus/w1/devices/28-01203335f00a/w1_slave & cat /sys/bus/w1/devices/28-01203320a597/w1_slave
 sensorids = ["28-01203335f00a", "28-01203320a597", "28-01203333797e", "28-01203303fd63"] # place the ID's of your ds18b20's in here
-#see lines around 100 for the identification of these sensors 
+#see lines around 74 for the identification of these sensors 
 
 def read_temp_raw():
     f = open(device_file, "r")
@@ -51,14 +51,14 @@ while True:
 #####if Night: sleep#######
     HM=int(time.strftime('%H''%M'))
     if HM > 2000 + manual*200: # als manueel ingesteld verwarmen tot 22:00, anders tot 20:00
-        GPIO.cleanup()
         print("{} PM. Go to sleep until around 6 AM".format(HM))
         time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
-#        GPIO.output(26,True)
-#        GPIO.output(20,True)
+        GPIO.output(26,True)
+        GPIO.output(20,True)
 #        GPIO.cleanup() # ATTENTION, this will give something like GPIO not set-up error..
 
-    
+
+######Sensor data (read and write)######    
     results = time.strftime("%Y-%m-%d %H:%M")
     for sensor in range(len(sensorids)):
         device_file = "/sys/bus/w1/devices/"+ sensorids[sensor] +"/w1_slave"
@@ -73,8 +73,7 @@ while True:
     tempKitchen=float(results.split(",")[3]) # temperature of Kitchen ceiling - sensor 28-01203333797e
     tempSolar=float(results.split(",")[1]) # temperature of output of Solar Collector - sensor 28-01203335f00a
     tempTank=float(results.split(",")[4]) # temperature at bottom of Water Storage Tank - sensor 28-01203303fd63
-    HM=int(time.strftime('%H''%M'))
-#     print(time)
+
 
 #############Thermostat###########
     if HM > 1400 and tempKitchen < temp_high: # time between 14h and 20/22h
