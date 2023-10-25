@@ -3,10 +3,13 @@ import RPi.GPIO as GPIO
 import sys
 
 #target temperatures
-temp_low=17.4
-temp_high=18
+temp_low=17.2
+temp_high=18.5
 
 manual=0
+
+HM=int(time.strftime('%H''%M'))
+
 
 # overrule target temperatures if manual command such as: python heater.py 19
 if len(sys.argv) > 1:
@@ -22,7 +25,7 @@ GPIO.setup(20,GPIO.OUT) #eerste relay voor solar
 GPIO.setup(26,GPIO.OUT) #this seems like the only pin needed for our thermostat
 # GPIO.setup(21,GPIO.OUT)
 
-#######Read and write SENSOR data ###########
+#######Sensor data (definitions)###########
 #cat /sys/bus/w1/devices/28-01203335f00a/w1_slave & cat /sys/bus/w1/devices/28-01203320a597/w1_slave
 sensorids = ["28-01203335f00a", "28-01203320a597", "28-01203333797e", "28-01203303fd63"] # place the ID's of your ds18b20's in here
 #see lines around 74 for the identification of these sensors 
@@ -49,16 +52,16 @@ while True:
 
     
 #####if Night: sleep#######
-    HM=int(time.strftime('%H''%M'))
     if HM > 2000 + manual*200: # als manueel ingesteld verwarmen tot 22:00, anders tot 20:00
         print("{} PM. Go to sleep until around 6 AM".format(HM))
-        time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
         GPIO.output(26,True)
         GPIO.output(20,True)
+        time.sleep (36000 - 3600*2*manual) # 10h = 60*60*10 sec. 10 hours after 20h = 6h
 #        GPIO.cleanup() # ATTENTION, this will give something like GPIO not set-up error..
 
 
 ######Sensor data (read and write)######    
+    HM=int(time.strftime('%H''%M'))
     results = time.strftime("%Y-%m-%d %H:%M")
     for sensor in range(len(sensorids)):
         device_file = "/sys/bus/w1/devices/"+ sensorids[sensor] +"/w1_slave"
@@ -105,5 +108,5 @@ while True:
             print("{} : tempSolar = {} > (tempTank = {})+1".format(timestamp,tempSolar,tempTank))
         else:
             GPIO.output(20,True)
-        time.sleep (120)    # change number of seconds to change time between sensor reads: 120 seconds = 2 minutes
+        time.sleep (120)    # sleep 120sec = 2 minutes (10 times, see line 89) // change number of seconds to change time between sensor reads: 120 seconds = 2 minutes
 
